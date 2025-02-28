@@ -4,6 +4,7 @@ import { FormDashboardPage } from '../poms/formDashboard';
 import { PublishedFormPage } from '../poms/publishedForm';
 import { FormEditorPage } from '../poms/formEditor';
 import { AnalyticsPage } from '../poms/analyticsPage';
+import { LOGIN_CREDENTIALS } from '../constants/values';
 
 import { faker } from '@faker-js/faker';
 
@@ -20,7 +21,7 @@ export const test = base.extend<FormFixtures>({
     formDashboard: async ({ page }, use) => {
         const dashboard = new FormDashboardPage(page);
         await dashboard.goto();
-        await dashboard.login({ email: "oliver@example.com", password: "welcome" });
+        await dashboard.login({ email: LOGIN_CREDENTIALS.DEFAULT_USER.EMAIL! , password: LOGIN_CREDENTIALS.DEFAULT_USER.PASSWORD! });
         await use(dashboard);
     },
 

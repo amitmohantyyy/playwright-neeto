@@ -1,7 +1,13 @@
 import { test } from '../fixtures/formFixture';
 import { expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
-import { FormDashboardPage } from '../poms/formDashboard';
+import { FORM_TEST_SELECTORS } from '../constants/selectors';
+import { FORM_TEXTS } from '../constants/texts';
+import { CHOICE_OPTIONS } from '../constants/values';
+import { TIMEOUTS } from '../constants/index';
+
+const { PUBLISHED_FORM, FORM_EDITOR, SUBMISSIONS } = FORM_TEST_SELECTORS;
+const { FIELD_TITLES, ERROR_MESSAGES, SUCCESS_MESSAGES, COUNTRIES, INPUT_VALUES } = FORM_TEXTS;
 
 test.describe("Form", () => {
     let email: string;
@@ -28,46 +34,46 @@ test.describe("Form", () => {
         await formEditor.addPhoneNumberField();
 
         await formEditor.setFormName(formName);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(TIMEOUTS.UI_ANIMATION);
         const publishUrl = await formEditor.publishForm();
         expect(publishUrl).toBeTruthy();
         
         const publishedPage = await page.context().newPage();
         await publishedPage.goto(publishUrl!);
         
-        await expect(publishedPage.getByTestId('phone-number-input-field')).toBeVisible();
-        await expect(publishedPage.getByTestId('email-text-field')).toBeVisible();
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.PHONE_NUMBER)).toBeVisible();
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL)).toBeVisible();
         
-        await publishedPage.getByTestId('email-text-field').fill(' ');
-        await publishedPage.getByTestId('phone-number-input-field').fill(' ');
-        await publishedPage.getByTestId('start-or-submit-button').click();
-        await expect(publishedPage.getByTestId('phone-group').getByTestId('form-error-text')).toContainText('Phone number is invalid');
-        await expect(publishedPage.getByTestId('email-group').getByTestId('form-error-text')).toContainText('Email address is required');
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL).fill(INPUT_VALUES.BLANK_SPACE);
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.PHONE_NUMBER).fill(INPUT_VALUES.BLANK_SPACE);
+        await publishedPage.getByTestId(PUBLISHED_FORM.BUTTONS.SUBMIT).click();
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.GROUPS.PHONE_GROUP).getByTestId(PUBLISHED_FORM.FEEDBACK.FORM_ERROR_TEXT)).toContainText(ERROR_MESSAGES.PHONE_NUMBER_INVALID);
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.GROUPS.EMAIL_GROUP).getByTestId(PUBLISHED_FORM.FEEDBACK.FORM_ERROR_TEXT)).toContainText(ERROR_MESSAGES.EMAIL_REQUIRED);
         
-        await publishedPage.getByTestId('email-text-field').fill('wrongemail$12.3in');
-        await publishedPage.getByTestId('phone-number-input-field').fill('d1cc11ce1cec3');
-        await publishedPage.getByTestId('start-or-submit-button').click();
-        await expect(publishedPage.getByTestId('phone-group').getByTestId('form-error-text')).toContainText('Phone number is invalid');
-        await expect(publishedPage.getByTestId('email-group').getByTestId('form-error-text')).toContainText('Email address is invalid');
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL).fill(INPUT_VALUES.INVALID_EMAIL);
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.PHONE_NUMBER).fill(INPUT_VALUES.INVALID_PHONE);
+        await publishedPage.getByTestId(PUBLISHED_FORM.BUTTONS.SUBMIT).click();
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.GROUPS.PHONE_GROUP).getByTestId(PUBLISHED_FORM.FEEDBACK.FORM_ERROR_TEXT)).toContainText(ERROR_MESSAGES.PHONE_NUMBER_INVALID);
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.GROUPS.EMAIL_GROUP).getByTestId(PUBLISHED_FORM.FEEDBACK.FORM_ERROR_TEXT)).toContainText(ERROR_MESSAGES.EMAIL_INVALID);
         
-        await publishedPage.getByTestId('email-text-field').fill(email);
-        await publishedPage.getByTestId('first-name-text-field').fill(fullName.split(' ')[0]);
-        await publishedPage.getByTestId('last-name-text-field').fill(fullName.split(' ')[1]);
-        await publishedPage.getByTestId('phone-number-input-field').fill('4082344567');
-        await publishedPage.getByTestId('country-code-dropdown').click();
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL).fill(email);
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.FIRST_NAME).fill(fullName.split(' ')[0]);
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.LAST_NAME).fill(fullName.split(' ')[1]);
+        await publishedPage.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.PHONE_NUMBER).fill(INPUT_VALUES.VALID_PHONE);
+        await publishedPage.getByTestId(PUBLISHED_FORM.DROPDOWNS.COUNTRY_CODE).click();
         
-        const countryCodeContainer = publishedPage.getByTestId('phone-number-dropdown-container');
-        await countryCodeContainer.getByText(/United States/i).click();
+        const countryCodeContainer = publishedPage.getByTestId(PUBLISHED_FORM.DROPDOWNS.COUNTRY_CODE_CONTAINER);
+        await countryCodeContainer.getByText(new RegExp(COUNTRIES.UNITED_STATES, 'i')).click();
         
-        await publishedPage.getByTestId('start-or-submit-button').click();
+        await publishedPage.getByTestId(PUBLISHED_FORM.BUTTONS.SUBMIT).click();
         
-        await expect(publishedPage.getByTestId('thank-you-page-message')).toContainText('Thank You');
+        await expect(publishedPage.getByTestId(PUBLISHED_FORM.FEEDBACK.THANK_YOU_MESSAGE)).toContainText(SUCCESS_MESSAGES.THANK_YOU);
         
-        await page.getByTestId('submissions-tab').click();
-        await page.getByTestId('submissions-search-text-field').fill(email);
-        await page.getByTestId('submissions-count-label').waitFor({ state: 'visible', timeout: 5000 });
+        await page.getByTestId(SUBMISSIONS.TAB).click();
+        await page.getByTestId(SUBMISSIONS.SEARCH_FIELD).fill(email);
+        await page.getByTestId(SUBMISSIONS.COUNT_LABEL).waitFor({ state: 'visible', timeout: TIMEOUTS.SUBMISSION_RESULTS });
         
-        const submissionCountText = await page.getByTestId('submissions-count-label').innerText();
+        const submissionCountText = await page.getByTestId(SUBMISSIONS.COUNT_LABEL).innerText();
         let countNumber = 0;
         if (submissionCountText && submissionCountText.trim().length > 0) {
             countNumber = parseInt(submissionCountText.split(' ')[0]) || 0;
@@ -83,31 +89,31 @@ test.describe("Form", () => {
         simulateUser,
         page
     }) => {
-        const spinner = page.getByTestId('neeto-ui-spinner');
+        const spinner = page.getByTestId(FORM_EDITOR.UI_ELEMENTS.SPINNER);
         
         await formDashboard.createNewForm();
         await formEditor.setFormName(formName);
         
-        await formEditor.addSingleChoiceField('Single Choice Demo', ['Option 5', 'Option 6', 'Option 7', 'Option 8', 'Option 9', 'Option 10']);
-        await page.getByTestId('randomize-switch-label').click();
+        await formEditor.addSingleChoiceField(FIELD_TITLES.SINGLE_CHOICE_DEMO, CHOICE_OPTIONS.SINGLE_CHOICE);
+        await page.getByTestId(FORM_EDITOR.UI_ELEMENTS.RANDOMIZE_SWITCH).click();
         
         const originalOptionTexts = await formEditor.getSingleChoiceOptions();
         
-        await formEditor.addMultiChoiceField('Multi Choice Demo', 5);
+        await formEditor.addMultiChoiceField(FIELD_TITLES.MULTI_CHOICE_DEMO, CHOICE_OPTIONS.MULTI_CHOICE_NUMBER);
         
-        const hideSwitch = page.getByTestId('hide-question-toggle-label');
+        const hideSwitch = page.getByTestId(FORM_EDITOR.UI_ELEMENTS.HIDE_QUESTION_TOGGLE);
         await hideSwitch.scrollIntoViewIfNeeded();
         await hideSwitch.click();
         
         await expect(spinner).toBeVisible();
         await expect(spinner).toBeHidden();
         
-        const publishBtn = page.getByTestId('publish-button');
-        await page.waitForTimeout(1000);
+        const publishBtn = page.getByTestId(FORM_EDITOR.UI_ELEMENTS.PUBLISH_BUTTON);
+        await page.waitForTimeout(TIMEOUTS.UI_ANIMATION);
         await publishBtn.click();
         
-        const previewButton = page.getByTestId("publish-preview-button");
-        await expect(previewButton).not.toBeDisabled({ timeout: 30000 });
+        const previewButton = page.getByTestId(FORM_EDITOR.UI_ELEMENTS.PUBLISH_PREVIEW_BUTTON);
+        await expect(previewButton).not.toBeDisabled({ timeout: TIMEOUTS.FORM_PUBLISH });
         const link = await previewButton.getAttribute("href");
         expect(link).toBeTruthy();
         
@@ -115,18 +121,18 @@ test.describe("Form", () => {
         
         const publishedOptionTexts = await publishedForm.getSingleChoiceOptions();
         
-        expect(JSON.stringify(originalOptionTexts) !== JSON.stringify(publishedOptionTexts)).toBeTruthy();
+        expect(JSON.stringify(originalOptionTexts) !== JSON.stringify(publishedOptionTexts));
         
-        await expect(publishedForm.page.getByTestId('form-group-question').filter({ hasText: 'Multi Choice Demo'})).toBeHidden();
+        await expect(publishedForm.page.getByTestId(PUBLISHED_FORM.GROUPS.FORM_GROUP_QUESTION).filter({ hasText: FIELD_TITLES.MULTI_CHOICE_DEMO})).toBeHidden();
         
-        await page.getByText('Multi Choice Demo').first().click();
+        await page.getByText(FIELD_TITLES.MULTI_CHOICE_DEMO).first().click();
         await hideSwitch.click();
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(TIMEOUTS.UI_ANIMATION);
         await publishBtn.click();
         
         publishedForm = await simulateUser(link!);
         
-        await expect(publishedForm.page.getByTestId('form-group-question').filter({ hasText: 'Multi Choice Demo'})).toBeVisible();
+        await expect(publishedForm.page.getByTestId(PUBLISHED_FORM.GROUPS.FORM_GROUP_QUESTION).filter({ hasText: FIELD_TITLES.MULTI_CHOICE_DEMO})).toBeVisible();
         
         await publishedForm.page.close();
     });
@@ -150,10 +156,10 @@ test.describe("Form", () => {
             completion: '0%'
         });
         
-        await page.waitForTimeout(1000);
-        await page.getByTestId('publish-button').click();
-        const previewButton = page.getByTestId('publish-preview-button');
-        await expect(previewButton).not.toBeDisabled({ timeout: 30000 });
+        await page.waitForTimeout(TIMEOUTS.UI_ANIMATION);
+        await page.getByTestId(FORM_EDITOR.UI_ELEMENTS.PUBLISH_BUTTON).click();
+        const previewButton = page.getByTestId(FORM_EDITOR.UI_ELEMENTS.PUBLISH_PREVIEW_BUTTON);
+        await expect(previewButton).not.toBeDisabled({ timeout: TIMEOUTS.FORM_PUBLISH });
         const link = await previewButton.getAttribute("href");
         if (!link) throw new Error("No link found in the publish preview button");
         
@@ -170,7 +176,7 @@ test.describe("Form", () => {
         const context2 = await browser.newContext();
         const user2 = await context2.newPage();
         await user2.goto(link);
-        await user2.getByTestId('email-text-field').fill(email);
+        await user2.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL).fill(email);
         await user2.close();
         await context2.close();
         
@@ -182,8 +188,8 @@ test.describe("Form", () => {
         const context3 = await browser.newContext();
         const user3 = await context3.newPage();
         await user3.goto(link);
-        await user3.getByTestId('email-text-field').fill(email);
-        await user3.getByTestId('start-or-submit-button').click();
+        await user3.getByTestId(PUBLISHED_FORM.INPUT_FIELDS.EMAIL).fill(email);
+        await user3.getByTestId(PUBLISHED_FORM.BUTTONS.SUBMIT).click();
         await user3.close();
         await context3.close();
         

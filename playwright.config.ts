@@ -5,8 +5,7 @@ import dotenv from 'dotenv';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import path from 'path';
-dotenv.config({ path: "./e2e/config/.env" });
+dotenv.config();
 
 /**
  * See https://playwright.dev/docs/test-configuration.

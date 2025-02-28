@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from "@playwright/test";
 import { PUBLISHED_FORM_SELECTORS } from "../constants/selectors";
+import { FORM_TEXTS } from "../constants/texts";
 
 const { FORM_ELEMENTS, DROPDOWN_ELEMENTS, RESULT_ELEMENTS } = PUBLISHED_FORM_SELECTORS;
 
@@ -33,7 +34,7 @@ export class PublishedFormPage {
         await this.page.getByTestId(FORM_ELEMENTS.LAST_NAME_FIELD).fill(lastName);
     }
 
-    async selectCountryCode(country: string = 'United States') {
+    async selectCountryCode(country: string = FORM_TEXTS.COUNTRIES.UNITED_STATES) {
         await this.page.getByTestId(DROPDOWN_ELEMENTS.COUNTRY_CODE).click();
         const countryCodeContainer = this.page.getByTestId(DROPDOWN_ELEMENTS.DROPDOWN_CONTAINER);
         await countryCodeContainer.getByText(new RegExp(country, 'i')).click();
@@ -44,7 +45,7 @@ export class PublishedFormPage {
     }
 
     async verifyThankYou() {
-        await expect(this.page.getByTestId(RESULT_ELEMENTS.THANK_YOU_MESSAGE)).toContainText('Thank You');
+        await expect(this.page.getByTestId(RESULT_ELEMENTS.THANK_YOU_MESSAGE)).toContainText(FORM_TEXTS.SUCCESS_MESSAGES.THANK_YOU);
     }
 
     async getSingleChoiceOptions() {

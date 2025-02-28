@@ -58,6 +58,15 @@ export class FormDashboardPage {
             await this.page.getByRole('button', { name: BUTTON_NAMES.DELETE }).click();
             await this.page.getByTestId(DELETE_ELEMENTS.ARCHIVE_CHECKBOX).check();
             await this.page.getByRole('button', { name: BUTTON_NAMES.DELETE }).click();
+            
+            // Wait for the deletion to complete and form count to return to 0
+            await expect(async () => {
+                const newCountText = await this.formCountLabel.innerText();
+                const newCount = newCountText && newCountText.trim().length > 0 
+                    ? parseInt(newCountText.split(' ')[0]) || 0 
+                    : 0;
+                expect(newCount).toBe(0);
+            }).toPass({ timeout: 10000 });
         }
     }
 };

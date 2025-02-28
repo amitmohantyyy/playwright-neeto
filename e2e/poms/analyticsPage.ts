@@ -17,6 +17,7 @@ export class AnalyticsPage {
     }
 
     async getMetrics() {
+        this.open();
         const visits = await this.page.getByTestId(METRIC_ELEMENTS.VISITS).getByTestId(METRIC_ELEMENTS.INSIGHTS_COUNT).innerText();
         const starts = await this.page.getByTestId(METRIC_ELEMENTS.STARTS).getByTestId(METRIC_ELEMENTS.INSIGHTS_COUNT).innerText();
         const submissions = await this.page.getByTestId(METRIC_ELEMENTS.SUBMISSIONS).getByTestId(METRIC_ELEMENTS.INSIGHTS_COUNT).innerText();

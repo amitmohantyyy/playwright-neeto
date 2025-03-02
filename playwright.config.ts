@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-dotenv.config();
+
+export const STORAGE_STATE = "./auth/session.json";
+dotenv.config({ path: ".env" })
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -38,17 +40,23 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "login",
+      use: { ...devices['Desktop Chrome']},
+      testMatch: "**/login.setup.ts",
     },
 
+    {
+      name: "teardown",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: "**/global.teardown.ts",
+    },
 
+    {
+      name: "Logged in tests",
+      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      dependencies: ["login"],
+      teardown: "teardown",
+      testMatch: "**/*.spec.ts",
+    },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

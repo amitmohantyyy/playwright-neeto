@@ -1,54 +1,66 @@
-import { Page, Locator, expect } from "@playwright/test";
-import { PUBLISHED_FORM_SELECTORS } from "../constants/selectors";
+import { Page, expect, BrowserContext } from "@playwright/test";
 
-const { FORM_ELEMENTS, DROPDOWN_ELEMENTS, RESULT_ELEMENTS } = PUBLISHED_FORM_SELECTORS;
+export default class PublishedForm {
+    private context?: BrowserContext;
 
-export class PublishedFormPage {
-    readonly page: Page;
-    readonly emailField: Locator;
-    readonly phoneField: Locator;
-    readonly submitButton: Locator;
-
-    constructor(page: Page) {
+    constructor(private page: Page, context?: BrowserContext) {
         this.page = page;
-        this.emailField = page.getByTestId(FORM_ELEMENTS.EMAIL_FIELD);
-        this.phoneField = page.getByTestId(FORM_ELEMENTS.PHONE_NUMBER_FIELD);
-        this.submitButton = page.getByTestId(FORM_ELEMENTS.SUBMIT_BUTTON);
+        this.context = context;
     }
 
-    async goto(url: string) {
-        await this.page.goto(url);
+    getFormFields = async () =>  {
+        return await this.page.getByTestId('form-group-question').allTextContents();
+    }
+
+    getFormErrors = async () => {
+        return await this.page.getByTestId('form-error-text').allTextContents();
+    }
+
+    formContains = async (fieldName: string) => {
+        const fields = await this.getFormFields();
+        const containsField = fields.some(text => text.includes(fieldName));
+
+        expect(containsField).toBeTruthy();
+    }
+
+    fillEmail = async (email: string) => {
+        await this.page.getByTestId('email-text-field').fill(email);
+    }
+
+    fillFullname = async (name: string) => {
+        const nameParts = name.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+        await this.page.getByTestId('first-name-text-field').fill(firstName);
+        await this.page.getByTestId('last-name-text-field').fill(lastName);
     }
     
-    async fillEmail(email: string) {
-        await this.emailField.fill(email);
-    }
+    fillPhoneNumberAndCountry = async (number: string, country: string) => {
 
-    async fillPhoneNumber(number: string) {
-        await this.phoneField.fill(number);
-    }
-
-    async fillName(firstName: string, lastName: string) {
-        await this.page.getByTestId(FORM_ELEMENTS.FIRST_NAME_FIELD).fill(firstName);
-        await this.page.getByTestId(FORM_ELEMENTS.LAST_NAME_FIELD).fill(lastName);
-    }
-
-    async selectCountryCode(country: string = 'United States') {
-        await this.page.getByTestId(DROPDOWN_ELEMENTS.COUNTRY_CODE).click();
-        const countryCodeContainer = this.page.getByTestId(DROPDOWN_ELEMENTS.DROPDOWN_CONTAINER);
+        await this.page.getByTestId('country-code-dropdown').click();
+        const countryCodeContainer = this.page.getByTestId('phone-number-dropdown-container');
         await countryCodeContainer.getByText(new RegExp(country, 'i')).click();
+
+        await this.page.getByTestId('phone-number-input-field').fill(number);
     }
 
-    async submit() {
-        await this.submitButton.click();
+    hasSpecificError = async (errorText: string): Promise<boolean> => {
+        const errors = await this.getFormErrors();
+        return errors.some(error => error.includes(errorText));
     }
 
-    async verifyThankYou() {
-        await expect(this.page.getByTestId(RESULT_ELEMENTS.THANK_YOU_MESSAGE)).toContainText('Thank You');
+    submitForm = async () => {
+        await this.page.getByTestId('start-or-submit-button').click();
     }
 
-    async getSingleChoiceOptions() {
-        const singleOptions = await this.page.getByTestId(RESULT_ELEMENTS.SINGLE_CHOICE_OPTION).allInnerTexts();
-        return JSON.stringify(singleOptions);
+    close = async () => {
+        if (this.context) {
+            await this.context.close();
+        }
+    }
+
+    verifySubmission = async () => {
+        await expect(this.page.getByTestId('thank-you-page-message')).toContainText("Thank You.");
     }
 }

@@ -2,6 +2,7 @@ import { Page, expect } from "@playwright/test";
 import SubmissionsPage from "./submissions";
 import PublishedForm from "./publishedForm";
 import Dashboard from "./dashboard";
+import AnalyticsPage from "./analytics";
 
 export default class FormBuilder {
     constructor(private page: Page) {
@@ -29,12 +30,21 @@ export default class FormBuilder {
         return new SubmissionsPage(this.page);
     };
 
+    navigateToAnalytics = async (): Promise<AnalyticsPage> => {
+        await this.page.getByTestId('more-dropdown-icon').click();
+        await this.page.getByTestId('analytics-more-tab').click();
+
+        await expect(this.page.getByTestId('submissions-insights-title')).toBeVisible();
+        return new AnalyticsPage(this.page);
+    }
+
     navigateToDashboard = async (): Promise<Dashboard> => {
         await this.page.goto('/admin/dashboard/active');
         await this.page.getByTestId('main-header').click();
         await expect(this.page.getByTestId('main-header')).toContainText('Active forms');
         return new Dashboard(this.page);
     }
+
 
     publishForm = async () => await this.page.getByTestId('publish-button').click();
 
@@ -43,7 +53,7 @@ export default class FormBuilder {
         let isDisabled = await button.isDisabled();
         
         if (isDisabled) {
-            await this.page.waitForTimeout(5000);
+            await this.page.waitForTimeout(10 * 1000);
             isDisabled = await button.isDisabled();
             
             if (isDisabled) {

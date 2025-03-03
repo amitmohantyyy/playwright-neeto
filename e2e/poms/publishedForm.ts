@@ -50,8 +50,25 @@ export default class PublishedForm {
         return errors.some(error => error.includes(errorText));
     }
 
+    verifySingleRandomizedOptions = async (originalOptions: string) => {
+        const singleOptions = await this.page.getByTestId('form-single-choice-options').allInnerTexts();
+        return (JSON.stringify(singleOptions) === JSON.stringify(originalOptions));
+    }
+
+    verifyMultiHidden = async (): Promise<Boolean> => {
+        return this.page.getByTestId('form-group-question').filter({ hasText: "Multi Demo"}).isVisible();
+    }
+
     submitForm = async () => {
         await this.page.getByTestId('start-or-submit-button').click();
+    }
+    
+    verifySubmission = async () => {
+        await expect(this.page.getByTestId('thank-you-page-message')).toContainText("Thank You.");
+    }
+
+    reload = async (): Promise<void> => {
+        await this.page.reload();
     }
 
     close = async () => {
@@ -60,7 +77,4 @@ export default class PublishedForm {
         }
     }
 
-    verifySubmission = async () => {
-        await expect(this.page.getByTestId('thank-you-page-message')).toContainText("Thank You.");
-    }
 }

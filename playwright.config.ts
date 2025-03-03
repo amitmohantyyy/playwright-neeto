@@ -17,6 +17,8 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
 
+  expect: { timeout: 25 * 1000 },
+
   timeout: 60 * 1000,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
@@ -33,7 +35,7 @@ export default defineConfig({
     testIdAttribute: 'data-cy',
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'https://neeto-form-web-playwright.neetodeployapp.com/login',
-    
+
     trace: 'on',
   },
 

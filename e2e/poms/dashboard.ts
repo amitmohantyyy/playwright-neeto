@@ -1,44 +1,42 @@
 import { Page, expect } from "@playwright/test";
-import FormBuilder from "./formBuilder";
+import { DASHBOARD_SELECTORS } from "../constants/selectors";
+import { DASHBOARD_LINKS } from "../constants/links/dashboard";
 
 export default class Dashboard {
     constructor(private page: Page) {
         this.page = page;
     }
 
-    navigateToFormBuilder = async (): Promise<FormBuilder> => {
-        await this.page.getByTestId('add-form-button').click();
-        await this.page.getByTestId('start-from-scratch-button').click();
-
-        await expect(this.page.getByTestId('elements-list-title')).toBeVisible({ timeout: 20 * 1000 });
-        
-        // Return the FormBuilder POM for the page we've now navigated to
-        return new FormBuilder(this.page);
+    navigateToFormBuilder = async () => {
+        await this.page.getByTestId(DASHBOARD_SELECTORS.addFormButton).click();
+        await this.page.getByTestId(DASHBOARD_SELECTORS.startFromScratchButton).click();
+        await expect(this.page.getByTestId(DASHBOARD_SELECTORS.elementsListTitle)).toBeVisible({ timeout: 20 * 1000 });
     }
 
-    deleteForm = async (email: string) => {
-        await this.page.getByTestId('nui-input-field').fill(email);
-
-        await this.page.waitForTimeout(2000);
+    deleteForm = async (formName: string) => {
+        await this.page.goto(DASHBOARD_LINKS.activeForms);
+        await this.page.getByTestId(DASHBOARD_SELECTORS.inputField).fill(formName);
 
         const extractFormCount = (text: string): number => {
             if (!text || text.trim().length === 0) return 0;
             return parseInt(text.split(' ')[0]) || 0;
         };
 
-        const formCountText = await this.page.getByTestId('form-count-label').innerText();
+        await expect(this.page.getByTestId(DASHBOARD_SELECTORS.formCountLabel)).toContainText('form');
+
+        const formCountText = await this.page.getByTestId(DASHBOARD_SELECTORS.formCountLabel).innerText();
         const initialFormCount = extractFormCount(formCountText);
 
         if (initialFormCount > 0) {
-            await this.page.getByRole('checkbox', { name: 'Select all' }).check();
-            await this.page.getByTestId('take-action-dropdown-icon').click();
-            await this.page.getByTestId('bulk-delete-button').click();
-            await this.page.getByTestId('delete-archive-alert-archive-checkbox').check();
-            await this.page.getByTestId('delete-archive-alert-delete-button').click();
+            await this.page.getByRole('checkbox', { name: DASHBOARD_SELECTORS.selectAllCheckbox }).check();
+            await this.page.getByTestId(DASHBOARD_SELECTORS.takeActionDropdownIcon).click();
+            await this.page.getByTestId(DASHBOARD_SELECTORS.bulkDeleteButton).click();
+            await this.page.getByTestId(DASHBOARD_SELECTORS.deleteArchiveAlertArchiveCheckbox).check();
+            await this.page.getByTestId(DASHBOARD_SELECTORS.deleteArchiveAlertDeleteButton).click();
         }
 
-        await expect(this.page.getByTestId('no-data-container')).toBeVisible();
-        const formCountTextAfter = await this.page.getByTestId('form-count-label').innerText();
+        await expect(this.page.getByTestId(DASHBOARD_SELECTORS.noDataContainer)).toBeVisible();
+        const formCountTextAfter = await this.page.getByTestId(DASHBOARD_SELECTORS.formCountLabel).innerText();
         const finalFormCount = extractFormCount(formCountTextAfter);
         
         expect(finalFormCount).toBe(0);

@@ -11,11 +11,15 @@ test.describe("Customize form field elements", () => {
         await page.goto('/');
     });
 
-    test("Create, Publish and Customize form fields", async ({ dashboard, browser }) => {
-        let formBuilder, publishedForm;
+    test("Create, Publish and Customize form fields", async ({ 
+        dashboard,
+        formBuilder,
+        publishedForm,
+        page
+    }) => {
 
         await test.step("Step 1: Navigate to form builder and set name", async () => {
-            formBuilder = await dashboard.navigateToFormBuilder();
+            dashboard.navigateToFormBuilder();
             await formBuilder.setFormName(formName);
         });
 
@@ -34,9 +38,13 @@ test.describe("Customize form field elements", () => {
         });
 
         await test.step("Step 4: Publish form and verify Single choice field", async () => {
-
             await formBuilder.publishForm();
-            publishedForm = await formBuilder.openPublishedForm(browser);
+
+            const url = await formBuilder.returnPublishUrl();
+            console.log(url);
+            const newPage = await page.context().newPage();
+            await newPage.goto(url);
+            publishedForm.initialize(newPage);
                 
             await publishedForm.formContains('Single Demo');
             expect(publishedForm.verifySingleRandomizedOptions("Option 5, Option 6, Option 7, Option 8, Option 9, Option 10")).toBeTruthy();
@@ -67,8 +75,7 @@ test.describe("Customize form field elements", () => {
         });
 
         await test.step("Step 8: Clean up - delete form", async () => {
-            const dashboardPage = await formBuilder.navigateToDashboard();
-            await dashboardPage.deleteForm(formName);
+            await dashboard.deleteForm(formName);
         });
     });
 });

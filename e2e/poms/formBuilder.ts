@@ -1,8 +1,6 @@
 import { Page, expect } from "@playwright/test";
-import SubmissionsPage from "./submissions";
-import PublishedForm from "./publishedForm";
-import Dashboard from "./dashboard";
-import AnalyticsPage from "./analytics";
+import { FORMBUILDER_SELECTORS } from "../constants/selectors";
+import { FORMBUILDER_API } from "../constants/selectors/formBuilder";
 
 export default class FormBuilder {
     constructor(private page: Page) {
@@ -10,56 +8,34 @@ export default class FormBuilder {
     }
 
     setFormName = async (formName: string) => {
-        await this.page.getByTestId('form-title').click();
-        await this.page.getByTestId('form-rename-text-field').fill(formName);
-        await this.page.getByTestId('form-rename-submit-button').click();
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.formTitle).click();
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.formRenameTextField).fill(formName);
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.formRenameSubmitButton).click();
 
-        await expect(this.page.getByTestId('form-title')).toContainText(formName);
+        await expect(this.page.getByTestId(FORMBUILDER_SELECTORS.formTitle)).toContainText(formName);
     };
 
     addElement = async (elementName: string) => {
         await this.page.getByRole('button', { name: elementName }).click();
-        await expect(this.page.getByTestId('question-header')).toContainText(elementName);
+        await expect(this.page.getByTestId(FORMBUILDER_SELECTORS.questionHeader)).toContainText(elementName);
     };
 
-    navigateToSubmissionsTab = async (): Promise<SubmissionsPage> => {
-        await this.page.getByTestId('submissions-tab').click();
-        await expect(this.page.getByTestId('submissions-count-label')).toBeVisible();
-        
-        // Return the SubmissionsPage POM for the tab we've now navigated to
-        return new SubmissionsPage(this.page);
+    navigateToSubmissionsTab = async () => {
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.submissionsTab).click();
+        await expect(this.page.getByTestId(FORMBUILDER_SELECTORS.submissionsCountLabel)).toBeVisible();
     };
 
-    navigateToAnalytics = async (): Promise<AnalyticsPage> => {
-        await this.page.getByTestId('more-dropdown-icon').click();
-        await this.page.getByTestId('analytics-more-tab').click();
-
-        await expect(this.page.getByTestId('submissions-insights-title')).toBeVisible();
-        return new AnalyticsPage(this.page);
+    navigateToAnalytics = async () => {
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.moreDropdownIcon).click();
+        await this.page.getByTestId(FORMBUILDER_SELECTORS.analyticsMoreTab).click();
+        await expect(this.page.getByTestId(FORMBUILDER_SELECTORS.submissionsInsightsTitle)).toBeVisible();
     }
 
-    navigateToDashboard = async (): Promise<Dashboard> => {
-        await this.page.goto('/admin/dashboard/active');
-        await this.page.getByTestId('main-header').click();
-        await expect(this.page.getByTestId('main-header')).toContainText('Active forms');
-        return new Dashboard(this.page);
-    }
+    publishForm = async () => await this.page.getByTestId(FORMBUILDER_SELECTORS.publishButton).click();
 
-
-    publishForm = async () => await this.page.getByTestId('publish-button').click();
-
-    returnPublishedFormUrl = async (): Promise<string> => {
-        const button = this.page.getByTestId('publish-preview-button');
-        let isDisabled = await button.isDisabled();
-        
-        if (isDisabled) {
-            await this.page.waitForTimeout(10 * 1000);
-            isDisabled = await button.isDisabled();
-            
-            if (isDisabled) {
-                throw new Error('Publish preview button is still disabled after waiting');
-            }
-        }
+    returnPublishUrl = async () => {
+        const button = this.page.getByTestId(FORMBUILDER_SELECTORS.publishPreviewButton);
+        await expect(button).toBeEnabled();
         
         const href = await button.getAttribute('href');
         if (!href) {
@@ -68,76 +44,70 @@ export default class FormBuilder {
         return href;
     };
 
-    openPublishedForm = async (browser: any): Promise<PublishedForm> => {
-        const url = await this.returnPublishedFormUrl();
-        const context = await browser.newContext();
-        const newPage = await context.newPage();
-        await newPage.goto(url);
-        return new PublishedForm(newPage, context);
-    };
-
     //Customise functions
     renameLabel = async (option: string, label: string) => {
         if (option === "Single") {
-            await this.page.getByTestId('single-choice-options-container').click();
-            await this.page.getByTestId('content-text-field').fill(label);
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.singleChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.contentTextField).fill(label);
         } else {
-            await this.page.getByTestId('multi-choice-options-container').click();
-            await this.page.getByTestId('content-text-field').fill(label);
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.contentTextField).fill(label);
         }
     };
 
     addOptions = async (option: string, number: number) => {
         if (option === "Single") {
-            await this.page.getByTestId('single-choice-options-container').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.singleChoiceOptionsContainer).click();
             for (let i = 0; i < number; i++) {
-                await this.page.getByTestId('add-option-link').click();
+                await this.page.getByTestId(FORMBUILDER_SELECTORS.addOptionLink).click();
             }
         } else {
-            await this.page.getByTestId('multi-choice-options-container').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).click();
             for (let i = 0; i < number; i++) {
-                await this.page.getByTestId('add-option-link').click();
+                await this.page.getByTestId(FORMBUILDER_SELECTORS.addOptionLink).click();
             }
         }
     }
 
     addOptionsBulk = async (option: string, choices: string) => {
         if (option === "Single") {
-            await this.page.getByTestId('single-choice-options-container').click();
-            await this.page.getByTestId('add-bulk-option-link').click();
-            await this.page.getByTestId('bulk-add-options-textarea').fill(choices);
-            await this.page.getByTestId('bulk-add-options-done-button').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.singleChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.addBulkOptionLink).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.bulkAddOptionsTextarea).fill(choices);
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.bulkAddOptionsDoneButton).click();
         } else {
-            await this.page.getByTestId('multi-choice-options-container').click();
-            await this.page.getByTestId('add-bulk-option-link').click();
-            await this.page.getByTestId('bulk-add-options-textarea').fill(choices);
-            await this.page.getByTestId('bulk-add-options-done-button').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.addBulkOptionLink).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.bulkAddOptionsTextarea).fill(choices);
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.bulkAddOptionsDoneButton).click();
         }
     }
 
     randomizeOptions = async (option: string) => {
         if (option === "Single") {
-            await this.page.getByTestId('single-choice-options-container').click();
-            await this.page.getByTestId('randomize-switch-label').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.singleChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.randomizeSwitchLabel).click();
         } else {
-            await this.page.getByTestId('multi-choice-options-container').click();
-            await this.page.getByTestId('randomize-switch-label').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.randomizeSwitchLabel).click();
         }
-        await this.page.waitForTimeout(1000);
+        await expect(this.page.getByTestId('properties-header').getByTestId('neeto-ui-spinner')).toBeVisible();
+        await expect(this.page.getByTestId('properties-header').getByTestId('neeto-ui-spinner')).toBeHidden();
     }
 
     hideQuestion = async (option: string) => {
         if (option === "Single") {
-            await this.page.getByTestId('single-choice-options-container').click();
-            await this.page.getByTestId('hide-question-toggle-label').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.singleChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.hideQuestionToggleLabel).click();
         } else {
-            await this.page.getByTestId('multi-choice-options-container').click();
-            await this.page.getByTestId('hide-question-toggle-label').click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).click();
+            await this.page.getByTestId(FORMBUILDER_SELECTORS.hideQuestionToggleLabel).click();
         }
-        await this.page.waitForTimeout(1000);
+        await expect(this.page.getByTestId('properties-header').getByTestId('neeto-ui-spinner')).toBeVisible();
+        await expect(this.page.getByTestId('properties-header').getByTestId('neeto-ui-spinner')).toBeHidden();
     }
 
-    async waitForPutThenGet(urlPattern = 'https://neeto-form-web-playwright.neetodeployapp.com/api/v1/forms/', timeout = 5000) {
+    waitForPutThenGet = async (urlPattern = FORMBUILDER_API.publishAPI, timeout = 5000) => {
         const waitForMethod = async (method: string) => 
           this.page.waitForResponse(
             res => res.request().method() === method && res.url().startsWith(urlPattern) && res.status() === 200,
@@ -146,9 +116,9 @@ export default class FormBuilder {
       
         await waitForMethod('PUT');
         return await waitForMethod('GET');
-        }
+    }
     
     multiOptionVisible = async () => {
-        return await this.page.getByTestId('multi-choice-options-container').isVisible();
-    }     
+        return await this.page.getByTestId(FORMBUILDER_SELECTORS.multiChoiceOptionsContainer).isVisible();
+    }
 }

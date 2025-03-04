@@ -1,48 +1,44 @@
 import { test as base } from '@playwright/test';
-import LoginPage from '../poms/login';
-import FormBuilder from '../poms/formBuilder';
 import PublishedForm from '../poms/publishedForm';
-import SubmissionsPage from '../poms/submissions';
 import Dashboard from '../poms/dashboard';
+import FormBuilder from '../poms/formBuilder';
+import AnalyticsPage from '../poms/analytics';
+import SubmissionsPage from '../poms/submissions';
 
 type PageFixtures = {
-  loginPage: LoginPage;
+  dashboard: Dashboard;
   formBuilder: FormBuilder;
   publishedForm: PublishedForm;
-  submissionsPage: SubmissionsPage;
-  dashboard: Dashboard;
+  analytics: AnalyticsPage;
+  submissions: SubmissionsPage;
 };
 
 export const test = base.extend<PageFixtures>({
-  loginPage: async({ page }, use) => {
-    const loginPage = new LoginPage(page);
-    await use(loginPage);
-  },
-
+  // Base pages
   dashboard: async({ page }, use) => {
     const dashboard = new Dashboard(page);
     await use(dashboard);
   },
+  
+  publishedForm: async({ page }, use) => {
+    const publishedForm = new PublishedForm(page);
+    await use(publishedForm);
+  },
 
-  formBuilder: async ({ page }, use) => {
+  // Pages that depend on other pages
+  formBuilder: async({ page }, use) => {
     const formBuilder = new FormBuilder(page);
     await use(formBuilder);
   },
   
-  submissionsPage: async ({ page }, use) => {
-    const submissionsPage = new SubmissionsPage(page);
-    await use(submissionsPage);
+  analytics: async({ page }, use) => {
+    const analytics = new AnalyticsPage(page);
+    await use(analytics);
   },
   
-  publishedForm: async ({ browser }, use) => {
-    // Create new browser context for the published form
-    const context = await browser.newContext();
-    const newPage = await context.newPage();
-    
-    const publishedForm = new PublishedForm(newPage);
-    await use(publishedForm);
-    
-    // Clean up
-    await context.close();
+  submissions: async({ page }, use) => {
+    const submissions = new SubmissionsPage(page);
+    await use(submissions);
   },
+  
 });

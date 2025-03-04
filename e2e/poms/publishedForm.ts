@@ -1,80 +1,75 @@
-import { Page, expect, BrowserContext } from "@playwright/test";
+import { Page, expect } from "@playwright/test";
+import { PUBLISHED_FORM_SELECTORS } from "../constants/selectors/publishedForm";
 
 export default class PublishedForm {
-    private context?: BrowserContext;
+    private page: Page;
 
-    constructor(private page: Page, context?: BrowserContext) {
+    constructor(page: Page) {
         this.page = page;
-        this.context = context;
     }
 
-    getFormFields = async () =>  {
-        return await this.page.getByTestId('form-group-question').allTextContents();
+    initialize(page: Page) {
+        this.page = page;
     }
 
-    getFormErrors = async () => {
-        return await this.page.getByTestId('form-error-text').allTextContents();
+    async getFormFields() {
+        return await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.formGroupQuestion).allTextContents();
     }
 
-    formContains = async (fieldName: string) => {
+    async getFormErrors() {
+        return await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.formErrorText).allTextContents();
+    }
+
+    async formContains(fieldName: string) {
         const fields = await this.getFormFields();
         const containsField = fields.some(text => text.includes(fieldName));
-
         expect(containsField).toBeTruthy();
     }
 
-    fillEmail = async (email: string) => {
-        await this.page.getByTestId('email-text-field').fill(email);
+    async fillEmail(email: string) {
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.emailTextField).fill(email);
     }
 
-    fillFullname = async (name: string) => {
+    async fillFullname(name: string) {
         const nameParts = name.split(' ');
         const firstName = nameParts[0];
         const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-        await this.page.getByTestId('first-name-text-field').fill(firstName);
-        await this.page.getByTestId('last-name-text-field').fill(lastName);
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.firstNameTextField).fill(firstName);
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.lastNameTextField).fill(lastName);
     }
-    
-    fillPhoneNumberAndCountry = async (number: string, country: string) => {
 
-        await this.page.getByTestId('country-code-dropdown').click();
-        const countryCodeContainer = this.page.getByTestId('phone-number-dropdown-container');
+    async fillPhoneNumberAndCountry(number: string, country: string) {
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.countryCodeDropdown).click();
+        const countryCodeContainer = this.page.getByTestId(PUBLISHED_FORM_SELECTORS.phoneNumberDropdownContainer);
         await countryCodeContainer.getByText(new RegExp(country, 'i')).click();
 
-        await this.page.getByTestId('phone-number-input-field').fill(number);
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.phoneNumberInputField).fill(number);
     }
 
-    hasSpecificError = async (errorText: string): Promise<boolean> => {
+    async hasSpecificError(errorText: string): Promise<boolean> {
         const errors = await this.getFormErrors();
         return errors.some(error => error.includes(errorText));
     }
 
-    verifySingleRandomizedOptions = async (originalOptions: string) => {
-        const singleOptions = await this.page.getByTestId('form-single-choice-options').allInnerTexts();
-        return (JSON.stringify(singleOptions) === JSON.stringify(originalOptions));
+    async verifySingleRandomizedOptions(originalOptions: string) {
+        const singleOptions = await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.formSingleChoiceOptions).allInnerTexts();
+        return JSON.stringify(singleOptions) === JSON.stringify(originalOptions);
     }
 
-    verifyMultiHidden = async (): Promise<Boolean> => {
-        return this.page.getByTestId('form-group-question').filter({ hasText: "Multi Demo"}).isVisible();
+    async verifyMultiHidden(): Promise<boolean> {
+        return this.page.getByTestId(PUBLISHED_FORM_SELECTORS.formGroupQuestion).filter({ hasText: "Multi Demo" }).isVisible();
     }
 
-    submitForm = async () => {
-        await this.page.getByTestId('start-or-submit-button').click();
-    }
-    
-    verifySubmission = async () => {
-        await expect(this.page.getByTestId('thank-you-page-message')).toContainText("Thank You.");
+    async submitForm() {
+        await this.page.getByTestId(PUBLISHED_FORM_SELECTORS.startOrSubmitButton).click();
     }
 
-    reload = async (): Promise<void> => {
+    async verifySubmission() {
+        await expect(this.page.getByTestId(PUBLISHED_FORM_SELECTORS.thankYouPageMessage)).toContainText("Thank You.");
+    }
+
+    async reload(): Promise<void> {
         await this.page.reload();
     }
-
-    close = async () => {
-        if (this.context) {
-            await this.context.close();
-        }
-    }
-
 }

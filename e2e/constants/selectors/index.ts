@@ -1,0 +1,18 @@
+import { NAVIGATION_SELECTORS } from "./commons";
+import { DASHBOARD_SELECTORS } from "./dashboard";
+import { PUBLISHED_FORM_SELECTORS } from "./publishedForm";
+import { SUBMISSIONS_SELECTORS } from "./submissions";
+import { FORMBUILDER_SELECTORS, FORMBUILDER_API } from "./formBuilder";
+import { LOGIN_SELECTORS } from "./login";
+import { ANALYTICS_SELECTORS } from "./analytics";
+
+export {
+  NAVIGATION_SELECTORS,
+  DASHBOARD_SELECTORS,
+  PUBLISHED_FORM_SELECTORS,
+  SUBMISSIONS_SELECTORS,
+  FORMBUILDER_SELECTORS,
+  FORMBUILDER_API,
+  LOGIN_SELECTORS,
+  ANALYTICS_SELECTORS
+};

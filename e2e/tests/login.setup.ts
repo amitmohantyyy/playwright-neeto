@@ -1,8 +1,11 @@
 import { test } from "../fixtures/pageFixture";
 import { STORAGE_STATE } from "../../playwright.config";
+import LoginPage from "../poms/login";
 
 test.describe("Login page", () => {
-    test("should login with correct credentials", async ({ page, loginPage }) => {
+    test("should login with correct credentials", async ({ page }) => {
+        const loginPage = new LoginPage(page);
+        
         await test.step("step 1: navigate to login page", async () => {
             await page.goto('/');
         });

@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import Dashboard from "./dashboard";
+import { LOGIN_SELECTORS, NAVIGATION_SELECTORS } from "../constants/selectors";
 
 interface LoginPageProps {
     email: string,
@@ -11,15 +11,12 @@ export default class LoginPage {
         this.page = page;
     }
 
-    loginAndVerify = async ({ email, password }: LoginPageProps): Promise<Dashboard> => {
-        await this.page.getByTestId('login-email-text-field').fill(email);
-        await this.page.getByTestId('login-password-text-field').fill(password);
-        await this.page.getByTestId('login-submit-button').click();
+    loginAndVerify = async ({ email, password }: LoginPageProps) => {
+        await this.page.getByTestId(LOGIN_SELECTORS.emailTextField).fill(email);
+        await this.page.getByTestId(LOGIN_SELECTORS.passwordTextField).fill(password);
+        await this.page.getByTestId(LOGIN_SELECTORS.submitButton).click();
 
         //verify
-        await expect(this.page.getByTestId('main-header')).toContainText('Active forms');
-        
-        // Return dashboard since we've navigated there
-        return new Dashboard(this.page);
+        await expect(this.page.getByTestId(NAVIGATION_SELECTORS.mainHeader)).toContainText('Active forms');
     }
 }

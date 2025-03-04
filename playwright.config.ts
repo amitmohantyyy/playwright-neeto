@@ -34,7 +34,7 @@ export default defineConfig({
     /*Sets 'data-cy' as the getByTestId*/
     testIdAttribute: 'data-cy',
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://neeto-form-web-playwright.neetodeployapp.com/login',
+    baseURL: 'https://neeto-form-web-playwright.neetodeployapp.com/',
 
     trace: 'on',
   },

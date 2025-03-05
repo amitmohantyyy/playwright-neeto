@@ -1,20 +1,11 @@
 export const ANALYTICS_SELECTORS = {
-    // Main components
-    insightsPanel: "insights",
-    
-    // Metrics
-    visitsMetric: "visits-metric",
-    startsMetric: "starts-metric",
-    submissionsMetric: "submissions-metric",
-    
-    // Counts
-    insightsCount: "insights-count",
-    
-    // Charts and visualizations
-    visitsChart: "visits-chart",
-    submissionsChart: "submissions-chart",
-    
-    // Time period controls
-    timeRangeSelector: "time-range-selector",
-    dateRangePicker: "date-range-picker"
+export const ANALYTICS_SELECTORS = { insightsPanel: "insights" }
+
+export const METRICS_SELECTORS = {
+  visitsMetric: "visits-metric",
+  startsMetric: "starts-metric",
+  submissionsMetric: "submissions-metric"
+}
+
+// etc.
 }
